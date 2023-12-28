@@ -1,19 +1,25 @@
-import React, { useState, useEffect } from "react";
-import { useParams, useHistory } from "react-router-dom";
+import React, { useEffect } from "react";
+import { useParams } from "react-router-dom";
 import { Link } from "react-router-dom";
 
-import axios from "axios";
+import useAxios from "../hooks/useAxios";
 
 const EditMovieForm = (props) => {
-  const { push } = useHistory();
+  const { id } = useParams();
 
-  const { setMovies } = props;
-  const [movie, setMovie] = useState({
-    title: "",
-    director: "",
-    genre: "",
-    metascore: 0,
-    description: "",
+  const {
+    data: movie,
+    sendRequest: movieRequest,
+    setData: setMovie,
+    METHODS,
+  } = useAxios({
+    initialData: {
+      title: "",
+      director: "",
+      genre: "",
+      metascore: 0,
+      description: "",
+    },
   });
 
   const handleChange = (e) => {
@@ -23,26 +29,31 @@ const EditMovieForm = (props) => {
     });
   };
 
+  useEffect(() => {
+    movieRequest({ url: `/movies/${id}`, method: METHODS.GET });
+  }, [id]);
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    axios
-      .put(`http://localhost:9000/api/movies/${id}`, movie)
-      .then((res) => {
-        setMovies(res.data);
-        push(`/movies/${movie.id}`);
-      })
-      .catch((err) => {
-        console.log(err);
-      });
+
+    movieRequest({
+      url: `/movies/${id}`,
+      method: METHODS.PUT,
+      redirect: `/movies/${id}`,
+      callbackSuccess: props.updateMovies,
+      data: movie,
+    });
   };
 
   const { title, director, genre, metascore, description } = movie;
 
   return (
-    <div className="bg-white rounded-md shadow flex-1">
+    <div className="bg-white dark:bg-slate-700 rounded-md shadow flex-1 dark:bg-slate-700">
       <form onSubmit={handleSubmit}>
-        <div className="p-5 pb-3 border-b border-zinc-200">
-          <h4 className="text-xl font-bold">Düzenleniyor <strong>{movie.title}</strong></h4>
+        <div className="p-5 pb-3 border-b border-zinc-200 dark:border-zinc-900">
+          <h4 className="text-xl font-bold">
+            Düzenleniyor <strong>{movie.title}</strong>
+          </h4>
         </div>
 
         <div className="px-5 py-3">
@@ -92,15 +103,15 @@ const EditMovieForm = (props) => {
           </div>
         </div>
 
-        <div className="px-5 py-4 border-t border-zinc-200 flex justify-end gap-2">
-          <Link to={`/movies/1`} className="myButton bg-zinc-500">
+        <div className="px-5 py-4 border-t border-zinc-200 dark:border-zinc-900 flex justify-end gap-2">
+          <Link to={`/movies/${id}`} className="myButton bg-zinc-500">
             Vazgeç
           </Link>
           <button
             type="submit"
             className="myButton bg-green-700 hover:bg-green-600"
           >
-            Ekle
+            Düzenle
           </button>
         </div>
       </form>
